@@ -1,10 +1,24 @@
-﻿using System;
+using System;
 using System.IO;
 
 class TheGame
 {
     const int SIZE = 19;
+    const int WIN_LENGTH = 5;
 
+    /// <summary>
+    /// Значення, що можуть бути у клітинці дошки.
+    /// </summary>
+    enum CellState
+    {
+        Empty = 0,
+        Black = 1,
+        White = 2
+    }
+
+    /// <summary>
+    /// Точка входу в програму. Зчитує тести з файлу, аналізує кожну дошку та виводить результат.
+    /// </summary>
     static void Main()
     {
         try
@@ -61,12 +75,12 @@ class TheGame
                 {
                     for (int j = 0; j < SIZE; j++)
                     {
-                        switch (board[i, j])
+                        switch ((CellState)board[i, j])
                         {
-                            case 1:
+                            case CellState.Black:
                                 Console.Write("1 ");
                                 break;
-                            case 2:
+                            case CellState.White:
                                 Console.Write("2 ");
                                 break;
                             default:
@@ -77,8 +91,7 @@ class TheGame
                     Console.WriteLine();
                 }
 
-
-                // Аналiз дошки
+                // Аналiз дошки на перемогу
                 bool found = false;
 
                 for (int i = 0; i < SIZE && !found; i++)
@@ -86,7 +99,7 @@ class TheGame
                     for (int j = 0; j < SIZE && !found; j++)
                     {
                         int color = board[i, j];
-                        if (color == 0) continue;
+                        if (color == (int)CellState.Empty) continue;
 
                         if (Check(board, i, j, 0, 1, color) ||
                             Check(board, i, j, 1, 0, color) ||
@@ -114,9 +127,19 @@ class TheGame
         }
     }
 
+    /// <summary>
+    /// Перевіряє, чи є виграшна послідовність довжиною WIN_LENGTH у заданому напрямку.
+    /// </summary>
+    /// <param name="board">Дошка гри</param>
+    /// <param name="x">Початкова координата X</param>
+    /// <param name="y">Початкова координата Y</param>
+    /// <param name="dx">Зсув по X</param>
+    /// <param name="dy">Зсув по Y</param>
+    /// <param name="color">Колір каменя (1 або 2)</param>
+    /// <returns>true, якщо знайдена валідна виграшна комбінація</returns>
     static bool Check(int[,] board, int x, int y, int dx, int dy, int color)
     {
-        for (int k = 1; k < 5; k++)
+        for (int k = 1; k < WIN_LENGTH; k++)
         {
             int nx = x + dx * k;
             int ny = y + dy * k;
@@ -125,7 +148,7 @@ class TheGame
         }
 
         int prevX = x - dx, prevY = y - dy;
-        int nextX = x + dx * 5, nextY = y + dy * 5;
+        int nextX = x + dx * WIN_LENGTH, nextY = y + dy * WIN_LENGTH;
 
         if (InBounds(prevX, prevY) && board[prevX, prevY] == color)
             return false;
@@ -135,8 +158,14 @@ class TheGame
         return true;
     }
 
+    /// <summary>
+    /// Перевіряє, чи знаходяться координати в межах дошки.
+    /// </summary>
     static bool InBounds(int x, int y) => x >= 0 && y >= 0 && x < SIZE && y < SIZE;
 
+    /// <summary>
+    /// Виводить результат гри — колір переможця та координати його першої фішки.
+    /// </summary>
     static void PrintResult(int color, int x, int y)
     {
         Console.WriteLine(color);
