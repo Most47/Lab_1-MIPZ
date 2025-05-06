@@ -91,30 +91,14 @@ class TheGame
                     Console.WriteLine();
                 }
 
-                // Аналiз дошки на перемогу
-                bool found = false;
-
-                for (int i = 0; i < SIZE && !found; i++)
+                if (!TryFindWinner(board, out int winnerColor, out int x, out int y))
                 {
-                    for (int j = 0; j < SIZE && !found; j++)
-                    {
-                        int color = board[i, j];
-                        if (color == (int)CellState.Empty) continue;
-
-                        if (Check(board, i, j, 0, 1, color) ||
-                            Check(board, i, j, 1, 0, color) ||
-                            Check(board, i, j, 1, 1, color) ||
-                            Check(board, i, j, 1, -1, color))
-                        {
-                            PrintResult(color, i, j);
-                            found = true;
-                            break;
-                        }
-                    }
-                }
-
-                if (!found)
                     Console.WriteLine(0);
+                }
+                else
+                {
+                    PrintResult(winnerColor, x, y);
+                }
             }
         }
         catch (IOException ex)
@@ -125,6 +109,36 @@ class TheGame
         {
             Console.WriteLine($"Невiдома помилка: {ex.Message}");
         }
+    }
+
+    /// <summary>
+    /// Шукає переможця на дошці.
+    /// </summary>
+    static bool TryFindWinner(int[,] board, out int color, out int x, out int y)
+    {
+        for (int i = 0; i < SIZE; i++)
+        {
+            for (int j = 0; j < SIZE; j++)
+            {
+                color = board[i, j];
+                if (color == (int)CellState.Empty) continue;
+
+                if (Check(board, i, j, 0, 1, color) ||
+                    Check(board, i, j, 1, 0, color) ||
+                    Check(board, i, j, 1, 1, color) ||
+                    Check(board, i, j, 1, -1, color))
+                {
+                    x = i;
+                    y = j;
+                    return true;
+                }
+            }
+        }
+
+        color = 0;
+        x = 0;
+        y = 0;
+        return false;
     }
 
     /// <summary>
@@ -150,12 +164,8 @@ class TheGame
         int prevX = x - dx, prevY = y - dy;
         int nextX = x + dx * WIN_LENGTH, nextY = y + dy * WIN_LENGTH;
 
-        if (InBounds(prevX, prevY) && board[prevX, prevY] == color)
-            return false;
-        if (InBounds(nextX, nextY) && board[nextX, nextY] == color)
-            return false;
-
-        return true;
+        return !(InBounds(prevX, prevY) && board[prevX, prevY] == color) &&
+                  !(InBounds(nextX, nextY) && board[nextX, nextY] == color);
     }
 
     /// <summary>
